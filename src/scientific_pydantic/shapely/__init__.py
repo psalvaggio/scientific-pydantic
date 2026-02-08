@@ -1,0 +1,1 @@
+"""Type adaptors for shapely"""
