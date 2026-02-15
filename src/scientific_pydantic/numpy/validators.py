@@ -165,7 +165,7 @@ class LeValidator(pydantic.BaseModel, frozen=True, extra="forbid"):
         if not np.all(arr <= self.le):
             err = PydanticCustomError(
                 "bounds_error",
-                f"Not all elements were less than or equal to than {self.le}",
+                f"Not all elements were less than or equal to {self.le}",
             )
             raise err
         return arr

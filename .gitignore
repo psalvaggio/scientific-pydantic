@@ -11,3 +11,9 @@ wheels/
 
 # IDE files
 *.swp
+
+# OS-generated files
+.DS_Store
+
+# pytest-generated files
+.coverage*

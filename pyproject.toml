@@ -73,3 +73,8 @@ convention = "numpy"
     "PLR2004", # Magic value used in comparison
     "S311", # Standard pseudo-random generators
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "--cov=scientific_pydantic --cov-report=html --cov-branch"
