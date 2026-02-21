@@ -1303,7 +1303,7 @@ wheels = [
 ]
 
 [[package]]
-name = "scientific-pydantic"
+name = "scientific_pydantic"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

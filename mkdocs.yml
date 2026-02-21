@@ -1,8 +1,8 @@
-site_name: scientific-pydantic
+site_name: scientific_pydantic
 site_description: Integrations of common scientific Python types with pydantic
-site_url: https://psalvaggio.github.io/scientific-pydantic
-repo_url: https://github.com/psalvaggio/scientific-pydantic
-repo_name: psalvaggio/scientific-pydantic
+site_url: https://psalvaggio.github.io/scientific_pydantic
+repo_url: https://github.com/psalvaggio/scientific_pydantic
+repo_name: psalvaggio/scientific_pydantic
 
 theme:
   name: material
@@ -68,6 +68,6 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/psalvaggio/scientific-pydantic
+      link: https://github.com/psalvaggio/scientific_pydantic
   version:
     provider: mike
