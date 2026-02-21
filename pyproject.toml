@@ -18,6 +18,11 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "astropy>=6.1.7",
+    "mike>=2.1.3",
+    "mkdocs-gen-files>=0.6.0",
+    "mkdocs-literate-nav>=0.6.2",
+    "mkdocs-material>=9.7.2",
+    "mkdocstrings[python]>=1.0.3",
     "numpy>=2.2.6",
     "prek>=0.2.25",
     "pyrefly>=0.46.3",

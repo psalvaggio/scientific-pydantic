@@ -1,4 +1,4 @@
-"""Pydantic adaptors for shapely types"""
+"""Pydantic adapters for shapely types"""
 
 import types
 import typing as ty
@@ -14,7 +14,7 @@ from ..numpy.validators import NDArrayValidator
 T = ty.TypeVar("T")
 
 
-class ShapelyGeometryConstraints(pydantic.BaseModel):
+class GeometryConstraints(pydantic.BaseModel):
     """Validation constraints that can be applied to shapely geometries"""
 
     class CoordinateBounds(pydantic.BaseModel):
@@ -128,10 +128,10 @@ class ShapelyGeometryConstraints(pydantic.BaseModel):
         )
 
 
-class ShapelyGeometryAdapter:
-    """A pydantic adatper for shaeply geometry"""
+class GeometryAdapter:
+    """A pydantic adapter for shapely geometry"""
 
-    CoordinateBounds: ty.ClassVar[type] = ShapelyGeometryConstraints.CoordinateBounds
+    CoordinateBounds: ty.ClassVar[type] = GeometryConstraints.CoordinateBounds
 
     def __init__(
         self,
@@ -141,7 +141,7 @@ class ShapelyGeometryAdapter:
         y_bounds: CoordinateBounds | None = None,
         z_bounds: CoordinateBounds | None = None,
     ) -> None:
-        self._validator = ShapelyGeometryConstraints(
+        self._validator = GeometryConstraints(
             dimensionality=dimensionality,
             x_bounds=x_bounds,
             y_bounds=y_bounds,
@@ -241,9 +241,8 @@ def _get_allowable_types(source_type: ty.Any) -> tuple[type, ...]:
             allowable_types = ty.get_args(source_type)
         else:
             msg = (
-                "ShapelyGeometryAdapter can only be used on a shapely "
-                "geometry type or a union of shapely geometry types, "
-                f"not {source_type}."
+                "GeometryAdapter can only be used on a shapely geometry type "
+                f"or a union of shapely geometry types, not {source_type}."
             )
             raise pydantic.PydanticSchemaGenerationError(msg)
 
@@ -259,10 +258,9 @@ def _get_allowable_types(source_type: ty.Any) -> tuple[type, ...]:
         > 0
     ):
         msg = (
-            "ShapelyGeometryAdapter can only be used on a shapely "
-            "geometry type or a union of shapely geometry types. Found "
-            "the following invalid arguments: "
-            f"{', '.join(str(x) for x in bad_types)}."
+            "GeometryAdapter can only be used on a shapely geometry type or a "
+            "union of shapely geometry types. Found the following invalid "
+            f"arguments: {', '.join(str(x) for x in bad_types)}."
         )
         raise pydantic.PydanticSchemaGenerationError(msg)
 

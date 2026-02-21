@@ -17,3 +17,6 @@ wheels/
 
 # pytest-generated files
 .coverage*
+
+# mkdocs-generated files
+site/
