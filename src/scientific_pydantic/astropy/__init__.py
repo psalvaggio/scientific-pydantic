@@ -1,0 +1,1 @@
+"""Pydantic adaptors for astropy"""

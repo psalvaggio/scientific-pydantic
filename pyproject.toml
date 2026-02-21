@@ -78,3 +78,8 @@ convention = "numpy"
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "--cov=scientific_pydantic --cov-report=html --cov-branch"
+
+[tool.coverage.report]
+exclude_also = [
+    "if ty.TYPE_CHECKING:",
+]

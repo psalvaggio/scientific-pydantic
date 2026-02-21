@@ -129,7 +129,7 @@ class ShapelyGeometryConstraints(pydantic.BaseModel):
 
 
 class ShapelyGeometryAdapter:
-    """An pydantic adatper for shaeply geometry"""
+    """A pydantic adatper for shaeply geometry"""
 
     CoordinateBounds: ty.ClassVar[type] = ShapelyGeometryConstraints.CoordinateBounds
 
