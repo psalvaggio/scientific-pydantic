@@ -16,9 +16,9 @@ from scientific_pydantic.slice_syntax import (
 
 
 class SliceAdapter:
-    """Pydantic adapter for Python's built-in ``slice``.
+    """Pydantic adapter for Python's built-in `slice`.
 
-    JSON representation: "[start]:[stop][:step]"
+    JSON representation: `"[start]:[stop][:step]"`
     """
 
     def __init__(

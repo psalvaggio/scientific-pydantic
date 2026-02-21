@@ -11,13 +11,11 @@ import shapely.testing
 from numpy.typing import ArrayLike
 
 from scientific_pydantic.shapely.adapters import (
-    ShapelyGeometryAdapter,
-    ShapelyGeometryConstraints,
+    GeometryAdapter,
+    GeometryConstraints,
 )
 
-AnyShapelyGeometry = ty.Annotated[
-    shapely.geometry.base.BaseGeometry, ShapelyGeometryAdapter()
-]
+AnyShapelyGeometry = ty.Annotated[shapely.geometry.base.BaseGeometry, GeometryAdapter()]
 
 
 @pytest.mark.parametrize(
@@ -32,7 +30,7 @@ AnyShapelyGeometry = ty.Annotated[
 )
 def test_coordinate_bounds_valid(params: dict[str, ty.Any], data: ArrayLike) -> None:
     """Test passing cases for coordinate bounds"""
-    bounds = ShapelyGeometryConstraints.CoordinateBounds(**params)
+    bounds = GeometryConstraints.CoordinateBounds(**params)
     result = bounds(data)
     npt.assert_array_equal(result, data)
 
@@ -64,7 +62,7 @@ def test_coordinate_bounds_invalid(
     params: dict[str, ty.Any], data: ArrayLike, match: str
 ) -> None:
     """Test failing cases for coordinate bounds"""
-    bounds = ShapelyGeometryConstraints.CoordinateBounds(**params)
+    bounds = GeometryConstraints.CoordinateBounds(**params)
     with pytest.raises(ValueError, match=match):
         bounds(data)
 
@@ -97,7 +95,7 @@ def test_coordinate_bounds_invalid(
 )
 def test_summary(data: dict[str, ty.Any], must_haves: list[str]) -> None:
     """Test the summary method"""
-    constraints = ShapelyGeometryConstraints(**data)
+    constraints = GeometryConstraints(**data)
     summary = constraints.summary()
     for x in must_haves:
         assert x in summary
@@ -108,16 +106,16 @@ class GeometryModel(pydantic.BaseModel, frozen=True, extra="forbid"):
 
     base: AnyShapelyGeometry | None = None
 
-    any_point: ty.Annotated[shapely.Point, ShapelyGeometryAdapter()] | None = None
+    any_point: ty.Annotated[shapely.Point, GeometryAdapter()] | None = None
 
-    point3d: (
-        ty.Annotated[shapely.Point, ShapelyGeometryAdapter(dimensionality=3)] | None
-    ) = None
+    point3d: ty.Annotated[shapely.Point, GeometryAdapter(dimensionality=3)] | None = (
+        None
+    )
 
     point2d_01: (
         ty.Annotated[
             shapely.Point,
-            ShapelyGeometryAdapter(
+            GeometryAdapter(
                 dimensionality=2,
                 x_bounds={"ge": 0, "le": 1},
                 y_bounds={"ge": 0, "le": 1},
@@ -127,16 +125,14 @@ class GeometryModel(pydantic.BaseModel, frozen=True, extra="forbid"):
     ) = None
 
     linear_ring2d: (
-        ty.Annotated[shapely.LinearRing, ShapelyGeometryAdapter(dimensionality=2)]
-        | None
+        ty.Annotated[shapely.LinearRing, GeometryAdapter(dimensionality=2)] | None
     ) = None
 
     pt_or_multipt: (
-        ty.Annotated[shapely.Point | shapely.MultiPoint, ShapelyGeometryAdapter()]
-        | None
+        ty.Annotated[shapely.Point | shapely.MultiPoint, GeometryAdapter()] | None
     ) = None
 
-    any_polygon: ty.Annotated[shapely.Polygon, ShapelyGeometryAdapter()] | None = None
+    any_polygon: ty.Annotated[shapely.Polygon, GeometryAdapter()] | None = None
 
 
 @pytest.mark.parametrize(
@@ -261,14 +257,14 @@ def test_invalid_fields(data: dict[str, ty.Any], match: str) -> None:
     ("annotation", "match"),
     [
         pytest.param(
-            ty.Annotated[5, ShapelyGeometryAdapter()],
-            "ShapelyGeometryAdapter can only be used on a shapely "
+            ty.Annotated[5, GeometryAdapter()],
+            "GeometryAdapter can only be used on a shapely "
             "geometry type or a union of shapely geometry types, not 5",
             id="5",
         ),
         pytest.param(
-            ty.Annotated[int, ShapelyGeometryAdapter()],
-            "ShapelyGeometryAdapter can only be used on a shapely "
+            ty.Annotated[int, GeometryAdapter()],
+            "GeometryAdapter can only be used on a shapely "
             "geometry type or a union of shapely geometry types.*int",
             id="int",
         ),
@@ -299,7 +295,7 @@ def test_wkt_list_deserialization() -> None:
     """Test deserializing list of WKT strings"""
 
     class Model(pydantic.BaseModel):
-        waypoints: list[ty.Annotated[shapely.Point, ShapelyGeometryAdapter()]]
+        waypoints: list[ty.Annotated[shapely.Point, GeometryAdapter()]]
 
     model = Model(waypoints=["POINT (0 1)", "POINT (2 3)", "POINT (4 5)"])
     assert len(model.waypoints) == 3
@@ -311,9 +307,9 @@ def test_wkt_list_deserialization() -> None:
 
 
 def test_constaints_bad_type() -> None:
-    """Test ShapelyGeometryConstraints raises on an invalid type"""
+    """Test GeometryConstraints raises on an invalid type"""
     with pytest.raises(ValueError, match="was not a shapely geometry"):
-        ShapelyGeometryConstraints()(5)
+        GeometryConstraints()(5)
 
 
 def test_json_schema() -> None:

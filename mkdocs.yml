@@ -1,0 +1,73 @@
+site_name: scientific-pydantic
+site_description: Integrations of common scientific Python types with pydantic
+site_url: https://psalvaggio.github.io/scientific-pydantic
+repo_url: https://github.com/psalvaggio/scientific-pydantic
+repo_name: psalvaggio/scientific-pydantic
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - docs/gen_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            members_order: source
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: README.md
+  - API Reference: api/scientific_pydantic/
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/psalvaggio/scientific-pydantic
+  version:
+    provider: mike
