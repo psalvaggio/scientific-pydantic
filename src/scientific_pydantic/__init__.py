@@ -7,7 +7,7 @@ path as the type they are adapting. For instance, the adapter
 `astropy.units.UnitBase` lives in `scientific_pydantic.astropy.units`.
 """
 
-from . import astropy, numpy, shapely
+from . import astropy, numpy, scipy, shapely
 from .range import RangeAdapter
 from .slice import IntSliceAdapter, SliceAdapter
 
@@ -17,5 +17,6 @@ __all__ = [
     "SliceAdapter",
     "astropy",
     "numpy",
+    "scipy",
     "shapely",
 ]
