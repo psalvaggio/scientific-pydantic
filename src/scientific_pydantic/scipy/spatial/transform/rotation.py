@@ -147,7 +147,7 @@ class RotationAdapter:
 
                 err_t = "invalid_rotation_shape"
                 msg = "Rotation object shape {shape} did not match spec {spec}"
-                raise PydanticCustomError(err_t, msg, {"shape": x.shape, "spec": spec})
+                raise PydanticCustomError(err_t, msg, {"shape": shape, "spec": spec})
 
             python_schema = core_schema.chain_schema(
                 [
