@@ -385,9 +385,7 @@ def test_scipy_without_nd_support() -> None:
             f4: ty.Annotated[Rotation, RotationAdapter(single=True, ndim=0, shape=())]
 
         with pytest.raises(pydantic.PydanticSchemaGenerationError):
-
-            class Invalid(pydantic.BaseModel):
-                f0: ty.Annotated[Rotation, RotationAdapter(ndim=2)]
+            RotationAdapter(ndim=2)
 
 
 def test_scipy_without_assume_valid_support() -> None:
