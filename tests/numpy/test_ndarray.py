@@ -10,14 +10,10 @@ from numpy.typing import ArrayLike
 from scientific_pydantic.numpy import NDArrayAdapter
 
 
-def _make_model(**kwargs) -> type[pydantic.BaseModel]:
-    class Model(pydantic.BaseModel):
-        arr: ty.Annotated[np.ndarray, NDArrayAdapter(**kwargs)]
+class DefaultModel(pydantic.BaseModel):
+    """Model with an unconstrained ndarray"""
 
-    return Model
-
-
-DefaultModel = _make_model()
+    arr: ty.Annotated[np.ndarray, NDArrayAdapter()]
 
 
 @pytest.mark.parametrize(
@@ -42,7 +38,11 @@ def test_dtype_conversion(
     expected_dtype: np.dtype,
 ) -> None:
     """Test that dtype parameter correctly converts array types"""
-    model = _make_model(dtype=dtype)(arr=input_data)
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(dtype=dtype)]
+
+    model = Model(arr=input_data)  # type: ignore[bad-argument-type]
     assert model.arr.dtype == expected_dtype
 
 
@@ -79,14 +79,16 @@ def test_ndim_validation(
     should_pass: bool,
 ) -> None:
     """Test that ndim parameter validates array dimensions"""
-    model = _make_model(ndim=ndim)
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(ndim=ndim)]
 
     if should_pass:
-        x = model(arr=input_data)
+        x = Model(arr=input_data)  # type: ignore[bad-argument-type]
         assert x.arr.ndim == ndim
     else:
         with pytest.raises(pydantic.ValidationError) as exc_info:
-            model(arr=input_data)
+            Model(arr=input_data)  # type: ignore[bad-argument-type]
         assert "dimension" in str(exc_info.value).lower()
 
 
@@ -108,16 +110,18 @@ def test_shape_exact(
     should_pass: bool,
 ) -> None:
     """Test exact shape matching with int and None constraints"""
-    model = _make_model(shape=shape)
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(shape=shape)]
 
     if should_pass:
-        x = model(arr=input_data)
+        x = Model(arr=input_data)  # type: ignore[bad-argument-type]
         for i, constraint in enumerate(shape):
             if constraint is not None:
                 assert x.arr.shape[i] == constraint
     else:
         with pytest.raises(pydantic.ValidationError) as exc_info:
-            model(arr=input_data)
+            Model(arr=input_data)  # type: ignore[bad-argument-type]
         assert "does not match spec" in str(exc_info.value).lower()
 
 
@@ -146,16 +150,18 @@ def test_shape_range(
     should_pass: bool,
 ) -> None:
     """Test shape validation with range constraints"""
-    model = _make_model(shape=shape_constraint)
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(shape=shape_constraint)]
 
     input_data = np.ones(array_shape)
 
     if should_pass:
-        x = model(arr=input_data)
+        x = Model(arr=input_data)
         assert x.arr.shape == array_shape
     else:
         with pytest.raises(pydantic.ValidationError) as exc_info:
-            model(arr=input_data)
+            Model(arr=input_data)
         assert "range" in str(exc_info.value).lower()
 
 
@@ -181,14 +187,18 @@ def test_bounds_validation(
     should_pass: bool,
 ) -> None:
     """Test that bounds constraints work correctly"""
-    model = _make_model(**{constraint_name: constraint_value})
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[
+            np.ndarray, NDArrayAdapter(**{constraint_name: constraint_value})
+        ]
 
     if should_pass:
-        x = model(arr=input_data)
+        x = Model(arr=input_data)  # type: ignore[bad-argument-type]
         assert isinstance(x.arr, np.ndarray)
     else:
         with pytest.raises(pydantic.ValidationError) as exc_info:
-            model(arr=input_data)
+            Model(arr=input_data)  # type: ignore[bad-argument-type]
         assert {
             "ge": "greater than or equal to",
             "gt": "greater than",
@@ -214,15 +224,17 @@ def test_combined_bounds(
     should_pass: bool,
 ) -> None:
     """Test combining multiple bounds constraints"""
-    model = _make_model(ge=ge, le=le)
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(ge=ge, le=le)]
 
     if should_pass:
-        x = model(arr=input_data)
+        x = Model(arr=input_data)  # type: ignore[bad-argument-type]
         assert np.all(x.arr >= ge)
         assert np.all(x.arr <= le)
     else:
         with pytest.raises(pydantic.ValidationError):
-            model(arr=input_data)
+            Model(arr=input_data)  # type: ignore[bad-argument-type]
 
 
 @pytest.mark.parametrize(
@@ -242,40 +254,51 @@ def test_clipping(
     expected: ArrayLike,
 ) -> None:
     """Test that clipping works correctly"""
-    model = _make_model(clip=(clip_min, clip_max))
 
-    x = model(arr=input_data)
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(clip=(clip_min, clip_max))]
+
+    x = Model(arr=input_data)  # type: ignore[bad-argument-type]
     np.testing.assert_array_equal(x.arr, expected)
 
 
 def test_dtype_and_shape() -> None:
     """Test combining dtype and shape constraints"""
-    model = _make_model(dtype="float32", shape=(3, None))
 
-    x = model(arr=[[1, 2], [3, 4], [5, 6]])
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(dtype="float32", shape=(3, None))]
+
+    x = Model(arr=[[1, 2], [3, 4], [5, 6]])  # type: ignore[bad-argument-type]
     assert x.arr.dtype == np.float32
     assert x.arr.shape[0] == 3
 
 
 def test_bounds_and_clipping() -> None:
     """Test that validation happens before clipping"""
-    model = _make_model(clip=(0, 10))
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(clip=(0, 10))]
 
     # Should clip values outside range
-    x = model(arr=[-5, 5, 15])
+    x = Model(arr=[-5, 5, 15])  # type: ignore[bad-argument-type]
     np.testing.assert_array_equal(x.arr, [0, 5, 10])
 
 
 def test_all_constraints() -> None:
     """Test all constraints together"""
-    model = _make_model(
-        dtype="float64",
-        ndim=2,
-        shape=(3, None),
-        clip=(-1, 1),
-    )
 
-    x = model(arr=[[0, 0.5], [0.7, -0.3], [-2, 2]])
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[
+            np.ndarray,
+            NDArrayAdapter(
+                dtype="float64",
+                ndim=2,
+                shape=(3, None),
+                clip=(-1, 1),
+            ),
+        ]
+
+    x = Model(arr=[[0, 0.5], [0.7, -0.3], [-2, 2]])  # type: ignore[bad-argument-type]
     assert x.arr.dtype == np.float64
     assert x.arr.ndim == 2
     assert x.arr.shape[0] == 3
@@ -293,7 +316,7 @@ def test_all_constraints() -> None:
 )
 def test_json_round_trip(input_data: ArrayLike) -> None:
     """Test that arrays can be serialized and deserialized"""
-    model = DefaultModel(arr=input_data)
+    model = DefaultModel(arr=input_data)  # type: ignore[bad-argument-type]
     json_str = model.model_dump_json()
     restored = DefaultModel.model_validate_json(json_str)
 
@@ -302,19 +325,26 @@ def test_json_round_trip(input_data: ArrayLike) -> None:
 
 def test_json_with_dtype() -> None:
     """Test JSON serialization preserves dtype through validation"""
-    model = _make_model(dtype="float64")
 
-    x = model(arr=[1, 2, 3])
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(dtype="float64")]
+
+    x = Model(arr=[1, 2, 3])  # type: ignore[bad-argument-type]
     json_str = x.model_dump_json()
-    restored = model.model_validate_json(json_str)
+    restored = Model.model_validate_json(json_str)
 
     assert restored.arr.dtype == np.float64
 
 
 def test_json_schema_generation() -> None:
     """Test that JSON schema is generated correctly"""
-    model = _make_model(ndim=2, dtype="float64", ge=0, le=1)
-    schema = model.model_json_schema()
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[
+            np.ndarray, NDArrayAdapter(ndim=2, dtype="float64", ge=0, le=1)
+        ]
+
+    schema = Model.model_json_schema()
 
     assert "arr" in schema["properties"]
     assert schema["properties"]["arr"]["type"] == "array"
@@ -323,34 +353,46 @@ def test_json_schema_generation() -> None:
 
 def test_empty_array() -> None:
     """Test handling of empty arrays"""
-    model = _make_model(ndim=1)
-    x = model(arr=[])
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(ndim=1)]
+
+    x = Model(arr=[])  # type: ignore[bad-argument-type]
     assert x.arr.shape == (0,)
 
 
 def test_scalar_array() -> None:
     """Test 0-dimensional (scalar) arrays"""
-    model = _make_model(ndim=0)
-    x = model(arr=5)
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(ndim=0)]
+
+    x = Model(arr=5)  # type: ignore[bad-argument-type]
     assert x.arr.ndim == 0
     assert x.arr == 5
 
 
 def test_invalid_dtype_conversion() -> None:
     """Test that invalid dtype conversions raise errors"""
-    model = _make_model(dtype="M")
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(dtype="M")]
+
     # Numpy will pretty much do any conversion, but strings to datetime's can
     # raise an error
     with pytest.raises(pydantic.ValidationError):
-        model(arr=["a", "b"])
+        Model(arr=["a", "b"])  # type: ignore[bad-argument-type]
 
 
 def test_shape_constraint_dimension_mismatch() -> None:
     """Test error when shape constraint length doesn't match array dims"""
-    model = _make_model(shape=(3, 3))
+
+    class Model(pydantic.BaseModel):
+        arr: ty.Annotated[np.ndarray, NDArrayAdapter(shape=(3, 3))]
 
     with pytest.raises(pydantic.ValidationError, match="does not match spec"):
-        model(arr=[1, 2, 3])  # 1D array with 2D shape constraint
+        # 1D array with 2D shape constraint
+        Model(arr=[1, 2, 3])  # type: ignore[bad-argument-type]
 
 
 @pytest.mark.parametrize(

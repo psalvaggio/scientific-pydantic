@@ -33,7 +33,7 @@ def process_module(module: types.ModuleType) -> None:  # noqa: C901, PLR0912
     else:
         doc_path = API_DIR / Path(*parts[:-1]) / f"{parts[-1]}.md"
 
-    nav[["API Reference", *parts[1:]]] = doc_path
+    nav[("API Reference", *parts[1:])] = str(doc_path)
 
     # Separate subpackages from plain exported symbols so we don't
     # double-document things that will get their own pages.
@@ -56,7 +56,7 @@ def process_module(module: types.ModuleType) -> None:  # noqa: C901, PLR0912
             fd.write("*See subpackages below.*\n")
 
     # Point the "edit this page" link at the actual source file
-    mkdocs_gen_files.set_edit_path(doc_path, Path(module.__file__))
+    mkdocs_gen_files.set_edit_path(doc_path, module.__file__)
 
     # Recurse into any subpackages or submodules listed in __all__
     for name in all_exports:

@@ -39,7 +39,11 @@ class RangeAdapter:
                 except SliceSyntaxError as exc:
                     raise ValueError(str(exc)) from exc
 
-                return range(start or 0, stop, step or 1)
+                return range(
+                    start if start is not None else 0,
+                    stop,
+                    step if step is not None else 1,
+                )
 
             msg = "Expected range or slice-syntax string"
             raise ValueError(msg)

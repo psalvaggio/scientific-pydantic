@@ -136,7 +136,8 @@ class GtValidator(pydantic.BaseModel, frozen=True, extra="forbid"):
         if not np.all(arr > self.gt):
             err = PydanticCustomError(
                 "bounds_error",
-                f"Not all elements were greater than {self.gt}",
+                "Not all elements were greater than {gt}",
+                {"gt": self.gt},
             )
             raise err
         return arr
@@ -152,7 +153,8 @@ class GeValidator(pydantic.BaseModel, frozen=True, extra="forbid"):
         if not np.all(arr >= self.ge):
             err = PydanticCustomError(
                 "bounds_error",
-                f"Not all elements were greater than or equal to {self.ge}",
+                "Not all elements were greater than or equal to {ge}",
+                {"ge": self.ge},
             )
             raise err
         return arr
@@ -168,7 +170,8 @@ class LtValidator(pydantic.BaseModel, frozen=True, extra="forbid"):
         if not np.all(arr < self.lt):
             err = PydanticCustomError(
                 "bounds_error",
-                f"Not all elements were less than {self.lt}",
+                "Not all elements were less than {lt}",
+                {"lt": self.lt},
             )
             raise err
         return arr
@@ -184,7 +187,8 @@ class LeValidator(pydantic.BaseModel, frozen=True, extra="forbid"):
         if not np.all(arr <= self.le):
             err = PydanticCustomError(
                 "bounds_error",
-                f"Not all elements were less than or equal to {self.le}",
+                "Not all elements were less than or equal to {le}",
+                {"le": self.le},
             )
             raise err
         return arr

@@ -10,6 +10,46 @@ class SliceSyntaxError(ValueError):
 T = ty.TypeVar("T")
 
 
+@ty.overload
+def parse_slice_syntax(
+    value: str,
+    *,
+    converter: ty.Callable[[str], T],
+    require_start: ty.Literal[True],
+    require_stop: ty.Literal[True],
+) -> tuple[T, T, T | None]: ...
+
+
+@ty.overload
+def parse_slice_syntax(
+    value: str,
+    *,
+    converter: ty.Callable[[str], T],
+    require_start: ty.Literal[False],
+    require_stop: ty.Literal[True],
+) -> tuple[T | None, T, T | None]: ...
+
+
+@ty.overload
+def parse_slice_syntax(
+    value: str,
+    *,
+    converter: ty.Callable[[str], T],
+    require_start: ty.Literal[False],
+    require_stop: ty.Literal[False],
+) -> tuple[T | None, T | None, T | None]: ...
+
+
+@ty.overload
+def parse_slice_syntax(
+    value: str,
+    *,
+    converter: ty.Callable[[str], T],
+    require_start: ty.Literal[True],
+    require_stop: ty.Literal[False],
+) -> tuple[T, T | None, T | None]: ...
+
+
 def parse_slice_syntax(
     value: str,
     *,
@@ -39,7 +79,7 @@ def parse_slice_syntax(
         msg = "Invalid slice syntax"
         raise SliceSyntaxError(msg)
 
-    def _parse(part: str) -> int | None:
+    def _parse(part: str) -> T | None:
         part = part.strip()
         if part == "":
             return None

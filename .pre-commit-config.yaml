@@ -40,3 +40,17 @@ repos:
       # Formatting (ruff format replaces black)
       - id: ruff-format
         types_or: [python, pyi]
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.7.20
+    hooks:
+      - id: uv-lock
+
+  - repo: local
+    hooks:
+      - id: pyrefly
+        name: pyrefly type check
+        entry: uv run pyrefly check
+        language: system
+        types: [python]
+        pass_filenames: false

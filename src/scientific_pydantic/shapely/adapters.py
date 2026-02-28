@@ -5,7 +5,7 @@ import typing as ty
 from collections.abc import Mapping
 
 import pydantic
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import PydanticCustomError, core_schema
 
@@ -33,7 +33,7 @@ class GeometryConstraints(pydantic.BaseModel):
             default=None, description="All coordinates must be <= this value"
         )
 
-        def __call__(self, coordinates: NDArray) -> NDArray:
+        def __call__(self, coordinates: ArrayLike) -> NDArray:
             """Validate the bounds on the given coordinates"""
             return NDArrayValidator.from_kwargs(**self.model_dump())(coordinates)
 
@@ -91,7 +91,7 @@ class GeometryConstraints(pydantic.BaseModel):
             msg = "Only 3D geometries are allowed."
             raise PydanticCustomError(err_t, msg)
 
-        coords = None
+        coords: NDArray | None = None
         for idx, dim in enumerate("xyz"):
             bounds = getattr(self, f"{dim}_bounds")
             if bounds is None or (dim == "z" and not has_z):
@@ -102,8 +102,8 @@ class GeometryConstraints(pydantic.BaseModel):
                 bounds(coords[:, idx])
             except ValueError as e:
                 err_t = "out_of_bounds"
-                msg = f"{dim} coordinates failed bounds check: {e}"
-                raise PydanticCustomError(err_t, msg) from None
+                msg = "{dim} coordinates failed bounds check: {e}"
+                raise PydanticCustomError(err_t, msg, {"dim": dim, "e": e}) from None
 
         return geom
 
@@ -172,23 +172,24 @@ class GeometryAdapter:
                     err_t = "invalid_geojson"
                     raise PydanticCustomError(err_t, msg)
                 try:
-                    value = shapely.geometry.shape(value)
+                    value = shapely.geometry.shape(value)  # type: ignore[bad-argument-type]
                 except (KeyError, ValueError, shapely.errors.ShapelyError) as e:
-                    msg = f"Invalid GeoJSON mapping ({e})"
+                    msg = "Invalid GeoJSON mapping ({e})"
                     err_t = "invalid_geojson"
-                    raise PydanticCustomError(err_t, msg) from e
+                    raise PydanticCustomError(err_t, msg, {"e": e}) from e
 
             if not isinstance(value, allowable_types):
-                msg = f"Value was of incorrect type: {type(value).__name__}. "
+                msg = "Value was of incorrect type: {t}. {exp}"
+                subs = {"t": type(value).__name__}
                 if len(allowable_types) == 1:
-                    msg += f"Expected {allowable_types[0].__name__}."
+                    subs["exp"] = f"Expected {allowable_types[0].__name__}."
                 else:
-                    msg += (
+                    subs["exp"] = (
                         "Expected one of: "
                         f"{', '.join(t.__name__ for t in allowable_types)}."
                     )
                 err_t = "geometry_type"
-                raise PydanticCustomError(err_t, msg)
+                raise PydanticCustomError(err_t, msg, subs)
 
             return self._validator(value)
 
@@ -283,5 +284,6 @@ def _parse_str(val: str) -> ty.Any:  # actually shapely
         fails.append(f"WKT error: {e}")
 
     err_t = "invalid_geometry"
-    msg = f"invalid geometry string ({', '.join(fails)})"
-    raise PydanticCustomError(err_t, msg)
+    msg = "invalid geometry string ({errs})"
+    subs = {"errs": ", ".join(fails)}
+    raise PydanticCustomError(err_t, msg, subs)

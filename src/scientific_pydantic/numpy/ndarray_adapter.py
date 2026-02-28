@@ -124,7 +124,7 @@ class NDArrayAdapter:
         if self._validator.gt is not None:
             constraints.append(f"values > {self._validator.gt.gt}")
         if self._validator.lt is not None:
-            constraints.append(f"values < {self.lt}")
+            constraints.append(f"values < {self._validator.lt.lt}")
         if self._validator.clip is not None:
             constraints.append(
                 f"clipped to [{self._validator.clip.clip[0]}, "

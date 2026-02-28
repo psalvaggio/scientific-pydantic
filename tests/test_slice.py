@@ -5,18 +5,13 @@ import typing as ty
 import pydantic
 import pytest
 
-from scientific_pydantic import SliceAdapter
+from scientific_pydantic import IntSliceAdapter, SliceAdapter
 
 
-def make_model(*args, **kwargs) -> type[pydantic.BaseModel]:
-    """Make a test model"""
+class IntModel(pydantic.BaseModel):
+    """Model with an int slice"""
 
-    class _Model(pydantic.BaseModel):
-        """Test model using SliceAdapter"""
-
-        s: SliceAdapter(*args, **kwargs)
-
-    return _Model
+    s: ty.Annotated[slice, IntSliceAdapter]
 
 
 @pytest.mark.parametrize(
@@ -37,8 +32,7 @@ def make_model(*args, **kwargs) -> type[pydantic.BaseModel]:
 )
 def test_int_slice_validation(value: ty.Any, expected: range) -> None:
     """Valid inputs are converted to a range."""
-    model = make_model(int)
-    assert model(s=value).s == expected
+    assert IntModel(s=value).s == expected
 
 
 @pytest.mark.parametrize(
@@ -53,9 +47,8 @@ def test_int_slice_validation(value: ty.Any, expected: range) -> None:
 )
 def test_int_slice_validation_errors(value: ty.Any) -> None:
     """Invalid inputs raise ValidationError."""
-    model = make_model(int)
     with pytest.raises(pydantic.ValidationError):
-        model(r=value)
+        IntModel(s=value)
 
 
 @pytest.mark.parametrize(
@@ -66,16 +59,16 @@ def test_int_slice_validation_errors(value: ty.Any) -> None:
         pytest.param(slice(1, 4, 2), "1:4:2", id="1:4:2"),
     ],
 )
-def test_int_slice_serialization(value: range, truth: str) -> None:
+def test_int_slice_serialization(value: slice, truth: str) -> None:
     """Range serializes to JSON-compatible mapping."""
-    model = make_model(int)(s=value)
+    model = IntModel(s=value)
     assert model.model_dump() == {"s": value}
     assert model.model_dump(mode="json") == {"s": truth}
 
 
 def test_json_schema() -> None:
     """JSON schema is stable and well-defined."""
-    schema = make_model(int).model_json_schema()
+    schema = IntModel.model_json_schema()
     assert schema["properties"]["s"] == {
         "title": "S",
         "anyOf": [
@@ -111,10 +104,13 @@ def test_datetime_timedelta() -> None:
     """Make a heterogenuous slice"""
     import datetime
 
-    model = make_model(datetime.datetime, step_type=datetime.timedelta)
+    class Model(pydantic.BaseModel):
+        s: ty.Annotated[
+            slice, SliceAdapter(datetime.datetime, step_type=datetime.timedelta)
+        ]
 
-    x = model(
-        s=("2026-01-02T01:00:00", "2026-01-03T02:00:00", "PT2H1M"),
+    x = Model(
+        s=("2026-01-02T01:00:00", "2026-01-03T02:00:00", "PT2H1M"),  # type: ignore[bad-argument-type]
     )
 
     assert x.s.start == datetime.datetime.fromisoformat("2026-01-02T01:00:00")

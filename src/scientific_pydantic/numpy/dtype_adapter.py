@@ -54,6 +54,6 @@ class DTypeAdapter:
         _handler: pydantic.GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         """Generate JSON schema for the ndarray field"""
-        json_schema = core_schema.str_schema()
+        json_schema = ty.cast("dict", core_schema.str_schema())
         json_schema["description"] = "NumPy dtype"
-        return json_schema
+        return ty.cast("JsonSchemaValue", json_schema)
