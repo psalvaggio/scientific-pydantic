@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import typing as ty
 
+import pydantic_core
+
 if ty.TYPE_CHECKING:
     import astropy.units as u
-
-import pydantic_core
 
 
 class EquivalencyValidator:
@@ -81,3 +81,80 @@ class EquivalencyValidator:
                 "hint": equiv_hint,
             },
         )
+
+
+def validate_physical_type(value: ty.Any) -> u.PhysicalType:
+    """Validate and coerce a value to an astropy Unit."""
+    import astropy.units as u
+
+    if isinstance(value, u.PhysicalType):
+        return value
+    if isinstance(value, (str, u.UnitBase, u.Quantity)):
+        try:
+            return u.get_physical_type(value)
+        except ValueError as exc:
+            err_t = "parse_error"
+            msg = 'Could not parse "{value}" as an astropy PhysicalType: {error}'
+            raise pydantic_core.PydanticCustomError(
+                err_t, msg, {"value": value, "error": str(exc)}
+            ) from exc
+
+    err_t = "type_error"
+    msg = (
+        "Expected a string, astropy PhysicalType, or quantity-like object, "
+        " got {type_name}"
+    )
+    raise pydantic_core.PydanticCustomError(
+        err_t, msg, {"type_name": type(value).__name__}
+    )
+
+
+UnitOrQuantity = ty.TypeVar("UnitOrQuantity", "u.UnitBase", "u.Quantity")
+
+
+class PhysicalTypeValidator:
+    """Validator for the physical type of a unit/quantity
+
+    Parameters
+    ----------
+    physical_type : astropy.units.PhysicalType
+        The unit/quantity must have this physical type
+    """
+
+    def __init__(self, physical_type: u.PhysicalType) -> None:
+        self._physical_type = physical_type
+
+    @property
+    def physical_type(self) -> u.PhysicalType:
+        """The unit/quantity must have this physical type"""
+        return self._physical_type
+
+    def __call__(self, val: UnitOrQuantity) -> UnitOrQuantity:
+        """Validate the given unit/quantity
+
+        Parameters
+        ----------
+        val : astropy.units.UnitBase | astropy.units.Quantity
+            The unit/quantity to validate
+
+        Returns
+        -------
+        astropy.units.UnitBase | astropy.units.Quantity
+            The input unit/quantity (for validator chaining)
+        """
+        import astropy.units as u
+
+        unit = val.unit if isinstance(val, u.Quantity) else val
+        if unit.physical_type != self._physical_type:  # type: ignore[missing-attribute]
+            err_t = "wrong_physical_type"
+            msg = "Unit ({unit}) must have physical type {req}, but it was {actual}"
+            raise pydantic_core.PydanticCustomError(
+                err_t,
+                msg,
+                {
+                    "unit": str(unit),
+                    "req": str(self._physical_type),
+                    "actual": str(unit.physical_type),
+                },
+            )
+        return val

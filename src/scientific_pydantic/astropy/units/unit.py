@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import typing as ty
 
 if ty.TYPE_CHECKING:
@@ -46,6 +47,8 @@ class UnitAdapter:
         Optional list of astropy equivalency pairs (as returned by e.g.
         ``astropy.units.spectral()``).  Passed verbatim to
         ``UnitBase.is_equivalent``.
+    physical_type : u.PhysicalType | str | u.Quantity | u.UnitBase | None
+        If given, the unit by have this physical type
     """
 
     def __init__(
@@ -53,32 +56,49 @@ class UnitAdapter:
         equivalent_unit: u.UnitBase | str | None = None,
         *,
         equivalencies: list[tuple] | None = None,
+        physical_type: u.PhysicalType | str | u.Quantity | u.UnitBase | None = None,
     ) -> None:
-        from .validators import EquivalencyValidator
-
-        self._equivalency_validator = (
-            EquivalencyValidator(equivalent_unit, equivalencies=equivalencies)
-            if equivalent_unit is not None
-            else None
+        from .validators import (
+            EquivalencyValidator,
+            PhysicalTypeValidator,
+            validate_physical_type,
         )
+
+        @dataclasses.dataclass
+        class Validators:
+            equivalency: EquivalencyValidator | None = None
+            physical_type: PhysicalTypeValidator | None = None
+
+        validators: dict[str, ty.Any] = {}
+
+        if equivalent_unit is not None:
+            validators["equivalency"] = EquivalencyValidator(
+                equivalent_unit, equivalencies=equivalencies
+            )
+
+        if physical_type is not None:
+            validators["physical_type"] = PhysicalTypeValidator(
+                validate_physical_type(physical_type)
+            )
+        self._validators = Validators(**validators)
 
     @property
     def equivalent_unit(self) -> u.UnitBase | None:
         """If non-None, validated units must be equivalent to this unit"""
-        return (
-            self._equivalency_validator.equivalent_unit
-            if self._equivalency_validator is not None
-            else None
-        )
+        val = self._validators.equivalency
+        return val.equivalent_unit if val is not None else None
 
     @property
     def equivalencies(self) -> list[tuple] | None:
         """Custom equivalencies for the equivalency check"""
-        return (
-            self._equivalency_validator.equivalencies
-            if self._equivalency_validator is not None
-            else None
-        )
+        val = self._validators.equivalency
+        return val.equivalencies if val is not None else None
+
+    @property
+    def physical_type(self) -> u.PhysicalType | None:
+        """If non-None, validated unit must be of this physical type"""
+        val = self._validators.physical_type
+        return val.physical_type if val is not None else None
 
     def __get_pydantic_core_schema__(
         self,
@@ -100,12 +120,10 @@ class UnitAdapter:
         validators: list[core_schema.CoreSchema] = [
             core_schema.no_info_plain_validator_function(_validate_unit)
         ]
-        if self._equivalency_validator is not None:
-            validators.append(
-                core_schema.no_info_plain_validator_function(
-                    self._equivalency_validator
-                )
-            )
+        if (equiv_val := self._validators.equivalency) is not None:
+            validators.append(core_schema.no_info_plain_validator_function(equiv_val))
+        if (pt_val := self._validators.physical_type) is not None:
+            validators.append(core_schema.no_info_plain_validator_function(pt_val))
 
         return core_schema.json_or_python_schema(
             json_schema=core_schema.chain_schema(
@@ -124,7 +142,7 @@ class UnitAdapter:
         del core_schema_
 
         desc = "An astropy unit expressed as a string."
-        if self._equivalency_validator is not None:
+        if self.equivalent_unit is not None:
             equiv_hint = ""
             if self.equivalencies is not None:
                 equiv_hint = (
@@ -133,6 +151,8 @@ class UnitAdapter:
                     + ")"
                 )
             desc += f' Must be equivalent to "{self.equivalent_unit}"{equiv_hint}.'
+        if self.physical_type is not None:
+            desc += f' Must be of type "{self.physical_type!s}".'
 
         return handler(core_schema.str_schema()) | {
             "description": desc,

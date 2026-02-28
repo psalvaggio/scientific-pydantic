@@ -19,6 +19,7 @@ class Model(pydantic.BaseModel):
     spectral: (
         ty.Annotated[u.UnitBase, UnitAdapter(u.m, equivalencies=u.spectral())] | None
     ) = None
+    length: ty.Annotated[u.UnitBase, UnitAdapter(physical_type="length")] | None = None
 
 
 @pytest.mark.parametrize(
@@ -39,6 +40,7 @@ class Model(pydantic.BaseModel):
         pytest.param({"spectral": u.nm}, {"spectral": u.nm}, id="spectral-nm"),
         pytest.param({"spectral": u.GHz}, {"spectral": u.GHz}, id="spectral-GHz"),
         pytest.param({"spectral": "cm-1"}, {"spectral": u.cm**-1}, id="spectral-cm-1"),
+        pytest.param({"length": "km"}, {"length": u.km}, id="str-length-km"),
     ],
 )
 def test_valid(data: dict[str, ty.Any], truth: dict[str, u.UnitBase]) -> None:
@@ -62,6 +64,7 @@ def test_valid(data: dict[str, ty.Any], truth: dict[str, u.UnitBase]) -> None:
             {"duration": "kg"}, "astropy_unit_not_equivalent", id="str-not-equivalent"
         ),
         pytest.param({"spectral": "s"}, "astropy_unit_not_equivalent", id="spectral-s"),
+        pytest.param({"length": "s"}, "wrong_physical_type", id="length-s"),
     ],
 )
 def test_invalid(data: dict[str, ty.Any], match: str) -> None:
@@ -74,6 +77,7 @@ ROUNT_TRIP_TESTS = [
     pytest.param({"any_unit": u.km / u.s}, id="unconstrained-unit"),
     pytest.param({"duration": "day"}, id="equiv-unit"),
     pytest.param({"spectral": u.nm}, id="custom-equiv-unit"),
+    pytest.param({"length": u.nm}, id="phys-type-unit"),
 ]
 
 
@@ -137,10 +141,12 @@ def test_serialization() -> None:
                         lambda x: (x - 32) * (5 / 9) + 273.15,
                     ),
                 ],
+                physical_type="temperature",
             ),
             (
                 "An astropy unit expressed as a string. Must be equivalent "
-                'to "K" (with custom equivalencies: K <-> C, K <-> F).'
+                'to "K" (with custom equivalencies: K <-> C, K <-> F). Must be of '
+                'type "temperature".'
             ),
             ["K"],
             id="equiv-temp",

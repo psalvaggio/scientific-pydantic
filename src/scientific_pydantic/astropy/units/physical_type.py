@@ -4,38 +4,8 @@ from __future__ import annotations
 
 import typing as ty
 
-if ty.TYPE_CHECKING:
-    import astropy.units as u
-
 import pydantic
-import pydantic_core
 from pydantic_core import core_schema
-
-
-def _validate_physical_type(value: ty.Any) -> u.PhysicalType:
-    """Validate and coerce a value to an astropy Unit."""
-    import astropy.units as u
-
-    if isinstance(value, u.PhysicalType):
-        return value
-    if isinstance(value, (str, u.UnitBase, u.Quantity)):
-        try:
-            return u.get_physical_type(value)
-        except ValueError as exc:
-            err_t = "parse_error"
-            msg = 'Could not parse "{value}" as an astropy PhysicalType: {error}'
-            raise pydantic_core.PydanticCustomError(
-                err_t, msg, {"value": value, "error": str(exc)}
-            ) from exc
-
-    err_t = "type_error"
-    msg = (
-        "Expected a string, astropy PhysicalType, or quantity-like object, "
-        " got {type_name}"
-    )
-    raise pydantic_core.PydanticCustomError(
-        err_t, msg, {"type_name": type(value).__name__}
-    )
 
 
 class PhysicalTypeAdapter:
@@ -50,6 +20,8 @@ class PhysicalTypeAdapter:
         """Get the pydantic schema for this type"""
         import astropy.units as u
 
+        from .validators import validate_physical_type
+
         del handler
 
         if source_type is not u.PhysicalType:
@@ -59,9 +31,7 @@ class PhysicalTypeAdapter:
             )
             raise pydantic.PydanticSchemaGenerationError(msg)
 
-        validator = core_schema.no_info_plain_validator_function(
-            _validate_physical_type
-        )
+        validator = core_schema.no_info_plain_validator_function(validate_physical_type)
 
         return core_schema.json_or_python_schema(
             json_schema=core_schema.chain_schema([core_schema.str_schema(), validator]),
