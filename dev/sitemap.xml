@@ -2,42 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/SUMMARY/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/api/scientific_pydantic/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/api/scientific_pydantic/astropy/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/api/scientific_pydantic/astropy/units/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/api/scientific_pydantic/numpy/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/api/scientific_pydantic/scipy/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/api/scientific_pydantic/scipy/spatial/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/api/scientific_pydantic/scipy/spatial/transform/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
     <url>
          <loc>https://psalvaggio.github.io/scientific_pydantic/dev/api/scientific_pydantic/shapely/</loc>
-         <lastmod>2026-02-23</lastmod>
+         <lastmod>2026-02-28</lastmod>
     </url>
 </urlset>
