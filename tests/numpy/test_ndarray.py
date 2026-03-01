@@ -200,10 +200,10 @@ def test_bounds_validation(
         with pytest.raises(pydantic.ValidationError) as exc_info:
             Model(arr=input_data)  # type: ignore[bad-argument-type]
         assert {
-            "ge": "greater than or equal to",
-            "gt": "greater than",
-            "lt": "less than",
-            "le": "less than or equal to",
+            "ge": " >= ",
+            "gt": " > ",
+            "lt": " < ",
+            "le": " <= ",
         }[constraint_name] in str(exc_info.value).lower()
 
 

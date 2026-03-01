@@ -1,5 +1,6 @@
 """Pydantic adapters for numpy."""
 
+import types
 import typing as ty
 from collections.abc import Sequence
 
@@ -25,7 +26,7 @@ class NDArrayAdapter:
     ----------
     dtype: "type | np.dtype | str | None" = None,
     ndim: int | None = None,
-    shape: Sequence[int | range | slice | None] | None = None,
+    shape: Sequence[Ellipsis | int | range | slice | None] | None = None,
     gt: float | None = None,
     ge: float | None = None,
     lt: float | None = None,
@@ -38,7 +39,7 @@ class NDArrayAdapter:
         *,
         dtype: "type | np.dtype | str | None" = None,
         ndim: int | None = None,
-        shape: Sequence[int | range | slice | None] | None = None,
+        shape: Sequence[types.EllipsisType | int | range | slice | None] | None = None,
         gt: float | None = None,
         ge: float | None = None,
         lt: float | None = None,

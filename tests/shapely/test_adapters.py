@@ -39,22 +39,14 @@ def test_coordinate_bounds_valid(params: dict[str, ty.Any], data: ArrayLike) -> 
 @pytest.mark.parametrize(
     ("params", "data", "match"),
     [
+        pytest.param({"gt": 0}, [-1.0, 2.0, 3.0], "Not all elements were > 0", id=">0"),
         pytest.param(
-            {"gt": 0},
-            [-1.0, 2.0, 3.0],
-            "Not all elements were greater than 0",
-            id=">0",
-        ),
-        pytest.param(
-            {"lt": 10},
-            [-1.0, 11.0, 3.0],
-            "Not all elements were less than 10",
-            id="<10",
+            {"lt": 10}, [-1.0, 11.0, 3.0], "Not all elements were < 10", id="<10"
         ),
         pytest.param(
             {"le": 10, "ge": 0},
             [0.0, 5.0, 11.0],
-            "Not all elements were less than or equal to 10",
+            "Not all elements were <= 10",
             id=">=0,<=10",
         ),
     ],
